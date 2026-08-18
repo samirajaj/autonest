@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "https://autonest.runasp.net",
+        target: "http://autonest.runasp.net",
         changeOrigin: true,
         secure: false,
       },
