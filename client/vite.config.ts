@@ -3,16 +3,18 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+
   server: {
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://autonest.runasp.net",
+        target: "https://autonest.runasp.net",
         changeOrigin: true,
         secure: false,
       },
     },
   },
+
   build: {
     rollupOptions: {
       output: {
@@ -24,5 +26,9 @@ export default defineConfig({
       },
     },
   },
-  test: { environment: "jsdom", setupFiles: "./src/test/setup.ts" },
+
+  test: {
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.ts",
+  },
 });
