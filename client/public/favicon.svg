@@ -1,0 +1,242 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="120 75 1014 1014" role="img" aria-labelledby="title">
+  <title id="title">Autonest logo</title>
+
+  <defs>
+    <!-- Outer dark nest -->
+    <linearGradient id="outerGrad" x1="0.18" y1="0.12" x2="0.82" y2="0.9">
+      <stop offset="0%" stop-color="#1b2430"/>
+      <stop offset="40%" stop-color="#111720"/>
+      <stop offset="78%" stop-color="#090c11"/>
+      <stop offset="100%" stop-color="#05070a"/>
+    </linearGradient>
+
+    <!-- subtle highlight across outer roof -->
+    <linearGradient id="outerSheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#35404f" stop-opacity=".28"/>
+      <stop offset="38%" stop-color="#1d2632" stop-opacity=".08"/>
+      <stop offset="100%" stop-color="#000" stop-opacity=".32"/>
+    </linearGradient>
+
+    <!-- lime arch -->
+    <linearGradient id="limeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f2ff45"/>
+      <stop offset="36%" stop-color="#ddff24"/>
+      <stop offset="68%" stop-color="#a8dc08"/>
+      <stop offset="100%" stop-color="#6da500"/>
+    </linearGradient>
+
+    <linearGradient id="limeEdge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8ff5d"/>
+      <stop offset="55%" stop-color="#d9ff43"/>
+      <stop offset="100%" stop-color="#9dcc05"/>
+    </linearGradient>
+
+    <!-- car -->
+    <linearGradient id="carGrad" x1=".15" y1=".1" x2=".85" y2=".95">
+      <stop offset="0%" stop-color="#232d39"/>
+      <stop offset="42%" stop-color="#111720"/>
+      <stop offset="100%" stop-color="#05070a"/>
+    </linearGradient>
+
+    <linearGradient id="hoodGrad" x1=".5" y1="0" x2=".5" y2="1">
+      <stop offset="0%" stop-color="#2a3440"/>
+      <stop offset="100%" stop-color="#11161d"/>
+    </linearGradient>
+
+    <linearGradient id="glassGrad" x1=".25" y1="0" x2=".75" y2="1">
+      <stop offset="0%" stop-color="#17212c"/>
+      <stop offset="100%" stop-color="#070a0e"/>
+    </linearGradient>
+
+    <filter id="limeGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
+
+  <!-- OUTER A / NEST. Thick roof ribbon plus vertical legs. -->
+  <path
+    d="M226 925
+       V730
+       C226 706 234 684 249 665
+       L521 286
+       C548 252 582 236 627 236
+       C672 236 706 252 733 286
+       L1005 665
+       C1020 684 1028 706 1028 730
+       V925"
+    fill="none"
+    stroke="url(#outerGrad)"
+    stroke-width="143"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+
+  <!-- highlight placed on upper-left/top of outer nest -->
+  <path
+    d="M226 925
+       V730
+       C226 706 234 684 249 665
+       L521 286
+       C548 252 582 236 627 236
+       C672 236 706 252 733 286
+       L1005 665"
+    fill="none"
+    stroke="url(#outerSheen)"
+    stroke-width="142"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity=".72"/>
+
+  <!-- INNER LIME NEST -->
+  <path
+    d="M339 958
+       V769
+       C339 750 346 733 359 720
+       L550 528
+       C572 506 598 495 627 495
+       C656 495 682 506 704 528
+       L895 720
+       C908 733 915 750 915 769
+       V958"
+    fill="none"
+    stroke="url(#limeGrad)"
+    stroke-width="72"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+
+  <!-- thin bright top edge to preserve original neon finish -->
+  <path
+    d="M339 958
+       V769
+       C339 750 346 733 359 720
+       L550 528
+       C572 506 598 495 627 495
+       C656 495 682 506 704 528
+       L895 720
+       C908 733 915 750 915 769
+       V958"
+    fill="none"
+    stroke="url(#limeEdge)"
+    stroke-width="5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity=".95"/>
+
+  <!-- CAR WINDSHIELD -->
+  <path
+    d="M456 829
+       L505 764
+       C521 743 546 731 574 731
+       H680
+       C708 731 733 743 749 764
+       L798 829
+       Z"
+    fill="url(#glassGrad)"/>
+
+  <!-- lime windshield/roof outline -->
+  <path
+    d="M458 829
+       L507 765
+       C523 744 547 734 574 734
+       H680
+       C707 734 731 744 747 765
+       L796 829"
+    fill="none"
+    stroke="#d9ff43"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+
+  <!-- mirrors -->
+  <path d="M459 820
+           C445 809 425 804 411 804
+           H404
+           C394 804 386 812 386 821
+           C386 831 394 838 404 838
+           H450Z"
+        fill="url(#carGrad)"/>
+  <path d="M795 820
+           C809 809 829 804 843 804
+           H850
+           C860 804 868 812 868 821
+           C868 831 860 838 850 838
+           H804Z"
+        fill="url(#carGrad)"/>
+
+  <!-- CAR BODY -->
+  <path
+    d="M397 976
+       V893
+       C397 856 417 831 454 820
+       C490 810 532 806 574 806
+       H680
+       C722 806 764 810 800 820
+       C837 831 857 856 857 893
+       V976
+       C857 989 847 999 834 999
+       H804
+       C794 999 786 993 782 984
+       L774 967
+       H480
+       L472 984
+       C468 993 460 999 450 999
+       H420
+       C407 999 397 989 397 976Z"
+    fill="url(#carGrad)"/>
+
+  <!-- sculpted hood -->
+  <path
+    d="M423 825
+       C473 819 522 818 563 820
+       C585 821 603 823 627 823
+       C651 823 669 821 691 820
+       C732 818 781 819 831 825
+       L744 867
+       C717 880 680 888 627 888
+       C574 888 537 880 510 867Z"
+    fill="url(#hoodGrad)"
+    opacity=".95"/>
+
+  <!-- center hood shadow -->
+  <path
+    d="M502 823
+       C542 825 579 829 627 829
+       C675 829 712 825 752 823
+       L708 857
+       C686 873 664 879 627 879
+       C590 879 568 873 546 857Z"
+    fill="#090c11"
+    opacity=".42"/>
+
+  <!-- headlights -->
+  <path
+    d="M429 865
+       C459 870 491 879 529 895
+       C529 902 524 907 516 907
+       L470 899
+       C451 896 439 886 429 865Z"
+    fill="#e2ff31"/>
+  <path
+    d="M825 865
+       C795 870 763 879 725 895
+       C725 902 730 907 738 907
+       L784 899
+       C803 896 815 886 825 865Z"
+    fill="#e2ff31"/>
+
+  <!-- subtle headlight glow -->
+  <path d="M434 868 C463 873 492 882 523 895"
+        stroke="#d9ff43" stroke-width="7" opacity=".25" filter="url(#limeGlow)" fill="none"/>
+  <path d="M820 868 C791 873 762 882 731 895"
+        stroke="#d9ff43" stroke-width="7" opacity=".25" filter="url(#limeGlow)" fill="none"/>
+
+  <!-- lower grille/opening -->
+  <path
+    d="M471 975
+       C480 956 495 946 517 946
+       H737
+       C759 946 774 956 783 975
+       L794 999
+       H460Z"
+    fill="#020305"/>
+
+</svg>
