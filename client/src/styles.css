@@ -574,6 +574,25 @@ input[type="file"]::file-selector-button {
 .modal .filter-reset {
   grid-column: 1/-1;
 }
+.modal .search-field {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--input);
+  border-radius: 12px;
+  min-height: 46px;
+  padding: 0 13px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.modal .search-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.modal .search-field input {
+  min-height: 44px;
+  padding: 0;
+}
 .car-card {
   position: relative;
 }
