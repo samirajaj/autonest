@@ -410,7 +410,8 @@ h3 {
 .field select:hover:not(:disabled),
 .field textarea:hover:not(:disabled),
 .filters input:hover:not(:disabled),
-.filters select:hover:not(:disabled) {
+.filters select:hover:not(:disabled),
+.filter-control select:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--line), var(--text) 22%);
 }
 .field input:user-invalid,
@@ -453,7 +454,8 @@ input[type="file"]::file-selector-button {
 .field select:focus,
 .field textarea:focus,
 .filters input:focus,
-.filters select:focus {
+.filters select:focus,
+.filter-control select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
@@ -517,33 +519,6 @@ input[type="file"]::file-selector-button {
 .filter-control select {
   min-height: 46px;
 }
-.filters .search-field {
-  min-height: 46px;
-  gap: 9px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--input);
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-.filters .search-field:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-ring);
-}
-.filters .search-field input {
-  min-width: 0;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-.filters .search-field input:focus {
-  border: 0;
-  box-shadow: none;
-}
 .filter-reset {
   min-height: 46px;
   display: inline-flex;
@@ -576,33 +551,6 @@ input[type="file"]::file-selector-button {
 }
 .modal .filter-search {
   grid-column: 1/-1;
-}
-.modal .search-field {
-  min-height: 46px;
-  gap: 9px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--input);
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-.modal .search-field:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-ring);
-}
-.modal .search-field input {
-  min-width: 0;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-.modal .search-field input:focus {
-  border: 0;
-  box-shadow: none;
 }
 .car-card {
   position: relative;
@@ -1011,7 +959,33 @@ footer .brand {
 .search-field {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  min-height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--input);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.search-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.search-field input:focus {
+  border: 0;
+  box-shadow: none;
+  outline: none;
 }
 .search-field svg {
   margin-left: 8px;

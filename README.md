@@ -41,16 +41,16 @@ The application uses role-based authorization throughout the React client and AS
 
 ## Technology stack
 
-| Area | Technologies |
-| --- | --- |
-| Client | React 19, TypeScript, Vite, React Router, TanStack Query |
-| UI | CSS design system, Lucide icons, Recharts |
-| API | ASP.NET Core Web API, .NET 9, JWT authentication, Swagger |
-| Business | Role-based services, DTOs, validation and domain rules |
-| Data | Entity Framework Core, ASP.NET Core Identity, SQL Server |
-| Background jobs | Hangfire with SQL Server storage |
-| Email | MailKit SMTP |
-| Testing | xUnit, ASP.NET Core integration tests, Vitest, Testing Library |
+| Area            | Technologies                                                   |
+| --------------- | -------------------------------------------------------------- |
+| Client          | React 19, TypeScript, Vite, React Router, TanStack Query       |
+| UI              | CSS design system, Lucide icons, Recharts                      |
+| API             | ASP.NET Core Web API, .NET 9, JWT authentication, Swagger      |
+| Business        | Role-based services, DTOs, validation and domain rules         |
+| Data            | Entity Framework Core, ASP.NET Core Identity, SQL Server       |
+| Background jobs | Hangfire with SQL Server storage                               |
+| Email           | MailKit SMTP                                                   |
+| Testing         | xUnit, ASP.NET Core integration tests, Vitest, Testing Library |
 
 ## Repository structure
 
@@ -136,10 +136,10 @@ Never commit user-secrets, environment files, production connection strings, sig
 
 ASP.NET Core automatically loads the appropriate environment configuration:
 
-| Environment | Client URL |
-| --- | --- |
-| Development | `http://localhost:5173/` |
-| Production/default | `https://autonest-website.vercel.com` |
+| Environment        | Client URL                            |
+| ------------------ | ------------------------------------- |
+| Development        | `http://localhost:5173/`              |
+| Production/default | `https://autonest-website.vercel.app` |
 
 `ClientBaseUrl` is used to generate email confirmation and password-reset links. Override it through `ClientBaseUrl` or the `ClientBaseUrl` environment variable for another deployment.
 
@@ -211,19 +211,19 @@ Vehicle uploads are stored in SQL Server. The shared placeholder is a static API
 
 ## API overview
 
-| Resource | Purpose |
-| --- | --- |
-| `/api/auth` | Registration, login, confirmation and password recovery |
-| `/api/cars` | Public catalog, details and vehicle images |
-| `/api/companies` | Public company listings |
-| `/api/cities` | Registration lookup data |
-| `/api/favorites` | Customer favorites |
-| `/api/requests` | Customer purchase and rental requests |
-| `/api/transactions` | Customer transactions and ratings |
-| `/api/profile` | Customer account management |
-| `/api/company` | Company dashboard, vehicles and request management |
-| `/api/admin` | Administrative accounts, plans and point ranges |
-| `/api/assets` | Shared static API assets |
+| Resource            | Purpose                                                 |
+| ------------------- | ------------------------------------------------------- |
+| `/api/auth`         | Registration, login, confirmation and password recovery |
+| `/api/cars`         | Public catalog, details and vehicle images              |
+| `/api/companies`    | Public company listings                                 |
+| `/api/cities`       | Registration lookup data                                |
+| `/api/favorites`    | Customer favorites                                      |
+| `/api/requests`     | Customer purchase and rental requests                   |
+| `/api/transactions` | Customer transactions and ratings                       |
+| `/api/profile`      | Customer account management                             |
+| `/api/company`      | Company dashboard, vehicles and request management      |
+| `/api/admin`        | Administrative accounts, plans and point ranges         |
+| `/api/assets`       | Shared static API assets                                |
 
 Protected endpoints require an `Authorization: Bearer <token>` header. Authorization is enforced by the API in addition to the client route guards.
 

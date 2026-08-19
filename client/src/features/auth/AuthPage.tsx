@@ -21,7 +21,7 @@ export function AuthPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
-  const { data: cities } = useQuery({
+  const { data: cities, isLoading: citiesLoading, error: citiesError } = useQuery({
     queryKey: ["cities"],
     queryFn: () => api<City[]>("/cities"),
   });
@@ -215,15 +215,23 @@ export function AuthPage() {
                 </div>
                 <div className="field">
                   <label>City</label>
-                  <select
-                    name="cityId"
-                    defaultValue={cities?.[0]?.id ?? ""}
-                    disabled={action.isPending()}
-                  >
-                    {cities?.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
+                  {citiesError ? (
+                    <p className="field-error">Failed to load cities.</p>
+                  ) : (
+                    <select
+                      name="cityId"
+                      defaultValue={cities?.[0]?.id ?? ""}
+                      disabled={action.isPending() || citiesLoading}
+                    >
+                      {citiesLoading ? (
+                        <option value="">Loading…</option>
+                      ) : (
+                        cities?.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))
+                      )}
+                    </select>
+                  )}
                 </div>
                 <div className="field">
                   <label>Area</label>
