@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "../../shared/api/client";
-import type { Session } from "../../shared/types";
+import type { City, Session } from "../../shared/types";
 import { useAuth } from "../../app/AuthContext";
 import { ActionButton } from "../../shared/components/ActionButton";
 import { useAsyncAction } from "../../shared/hooks/useAsyncAction";
@@ -19,6 +20,11 @@ export function AuthPage() {
 
   const { signIn } = useAuth();
   const navigate = useNavigate();
+
+  const { data: cities } = useQuery({
+    queryKey: ["cities"],
+    queryFn: () => api<City[]>("/cities"),
+  });
 
   function clearField(name: string) {
     setFieldErrors((prev) => {
@@ -211,13 +217,12 @@ export function AuthPage() {
                   <label>City</label>
                   <select
                     name="cityId"
-                    defaultValue="1"
+                    defaultValue={cities?.[0]?.id ?? ""}
                     disabled={action.isPending()}
                   >
-                    <option value="1">Damascus</option>
-                    <option value="2">Aleppo</option>
-                    <option value="3">Homs</option>
-                    <option value="4">Latakia</option>
+                    {cities?.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="field">

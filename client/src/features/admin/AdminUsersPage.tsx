@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Lock, LockOpen, Plus } from "lucide-react";
 import { api } from "../../shared/api/client";
-import type { Car, Paged } from "../../shared/types";
+import type { Car, City, Paged } from "../../shared/types";
 import { Modal } from "../../shared/components/Modal";
 import { CarCard } from "../../shared/components/CarCard";
 import { ActionButton } from "../../shared/components/ActionButton";
@@ -35,6 +35,11 @@ export function AdminUsersPage() {
   const { data, refetch } = useQuery({
     queryKey: ["admin-users", tab],
     queryFn: () => api<Paged<Customer | Company>>(`/admin/${tab}`),
+  });
+
+  const { data: cities } = useQuery({
+    queryKey: ["cities"],
+    queryFn: () => api<City[]>("/cities"),
   });
 
   async function lock(x: Customer | Company) {
@@ -277,10 +282,9 @@ export function AdminUsersPage() {
             <div className="field">
               <label>City</label>
               <select name="cityId" required>
-                <option value="1">Damascus</option>
-                <option value="2">Aleppo</option>
-                <option value="3">Homs</option>
-                <option value="4">Latakia</option>
+                {cities?.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
               </select>
             </div>
             <div className="field full">

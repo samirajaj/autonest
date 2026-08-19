@@ -39,7 +39,8 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw new ApiError(response.status, detail, errors);
   }
 
-  if (response.status === 204) return undefined as T;
+  if (response.status === 204 || response.headers.get("content-length") === "0")
+    return undefined as T;
   return response.json();
 }
 

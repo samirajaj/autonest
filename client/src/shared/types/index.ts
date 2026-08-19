@@ -66,6 +66,11 @@ export interface Metric {
   format: string;
 }
 
+export interface City {
+  id: number;
+  name: string;
+}
+
 export interface Dashboard {
   metrics: Metric[];
   quarterlyProfits: number[];
