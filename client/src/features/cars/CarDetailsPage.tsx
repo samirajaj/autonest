@@ -169,7 +169,6 @@ export function CarDetailsPage() {
               className="button field full"
               type="submit"
               pending={action.isPending("request")}
-              pendingLabel="Sending request…"
             >
               Send request
             </ActionButton>

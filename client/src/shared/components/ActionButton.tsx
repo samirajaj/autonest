@@ -3,13 +3,11 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   pending?: boolean;
-  pendingLabel?: string;
   children: ReactNode;
 };
 
 export function ActionButton({
   pending = false,
-  pendingLabel = "Working…",
   disabled,
   children,
   type = "button",
@@ -22,8 +20,7 @@ export function ActionButton({
       disabled={disabled || pending}
       aria-busy={pending}
     >
-      {pending && <LoaderCircle className="button-spinner" size={17} />}
-      {pending ? pendingLabel : children}
+      {pending ? <LoaderCircle className="button-spinner" size={17} /> : children}
     </button>
   );
 }

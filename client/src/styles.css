@@ -418,6 +418,18 @@ h3 {
 .field textarea:user-invalid {
   border-color: var(--danger-border);
 }
+.field .field-error {
+  color: var(--danger-text);
+  font-size: 0.76rem;
+  line-height: 1.4;
+  border-left: 2px solid var(--danger);
+  padding-left: 8px;
+}
+.field input.has-error,
+.field select.has-error,
+.field textarea.has-error {
+  border-color: var(--danger-border);
+}
 .field small {
   color: var(--muted);
   font-size: 0.76rem;

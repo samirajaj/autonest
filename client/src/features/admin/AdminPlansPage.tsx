@@ -115,7 +115,6 @@ export function AdminPlansPage() {
                 <ActionButton
                   className="icon-button danger"
                   pending={action.isPending(`remove-${x.id}`)}
-                  pendingLabel=""
                   aria-label={`Delete ${x.name} plan`}
                   onClick={() => remove(x.id)}
                 >
@@ -155,7 +154,6 @@ export function AdminPlansPage() {
             type="submit"
             disabled={!companies.data?.items.length || !plans.data?.length}
             pending={action.isPending("assign-plan")}
-            pendingLabel="Assigning…"
           >
             Assign plan
           </ActionButton>
@@ -199,7 +197,6 @@ export function AdminPlansPage() {
               className="button field full"
               type="submit"
               pending={action.isPending("save-plan")}
-              pendingLabel="Saving plan…"
             >
               Save plan
             </ActionButton>

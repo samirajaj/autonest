@@ -64,7 +64,6 @@ export function CarCard({
                 className="icon-button"
                 aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
                 pending={action.isPending("favorite")}
-                pendingLabel=""
                 onClick={toggle}
               >
                 <Heart size={18} fill={favorite ? "currentColor" : "none"} />

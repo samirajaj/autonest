@@ -100,7 +100,6 @@ export function RequestsPage() {
                         <ActionButton
                           className="button danger"
                           pending={action.isPending(`cancel-${x.id}`)}
-                          pendingLabel="Cancelling…"
                           onClick={() => cancel(x.id)}
                         >
                           Cancel

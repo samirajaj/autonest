@@ -166,7 +166,6 @@ export function AdminUsersPage() {
                       <ActionButton
                         className="button secondary"
                         pending={action.isPending(`vehicles-${x.id}`)}
-                        pendingLabel="Loading…"
                         onClick={() => viewCars(x.id)}
                       >
                         Vehicles
@@ -175,7 +174,6 @@ export function AdminUsersPage() {
                     <ActionButton
                       className="icon-button"
                       pending={action.isPending(`lock-${x.userId}`)}
-                      pendingLabel=""
                       aria-label={x.locked ? `Unlock ${x.name}` : `Lock ${x.name}`}
                       onClick={() => lock(x)}
                     >
@@ -293,7 +291,6 @@ export function AdminUsersPage() {
               className="button field full"
               type="submit"
               pending={action.isPending("save-account")}
-              pendingLabel="Saving account…"
             >
               Save account
             </ActionButton>

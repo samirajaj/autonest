@@ -107,7 +107,6 @@ export function CompanyVehiclesPage() {
                   <ActionButton
                     className="button secondary"
                     pending={actionRequest.isPending(`restore-${car.id}`)}
-                    pendingLabel="Restoring…"
                     onClick={() => action(car, true)}
                   >
                     <RotateCcw /> Restore
@@ -126,7 +125,6 @@ export function CompanyVehiclesPage() {
                     <ActionButton
                       className="icon-button danger"
                       pending={actionRequest.isPending(`delete-${car.id}`)}
-                      pendingLabel=""
                       aria-label={`Delete ${car.make} ${car.model}`}
                       onClick={() => action(car)}
                     >
@@ -268,7 +266,6 @@ export function CompanyVehiclesPage() {
               className="button field full"
               type="submit"
               pending={actionRequest.isPending("save-vehicle")}
-              pendingLabel="Saving vehicle…"
             >
               Save vehicle
             </ActionButton>

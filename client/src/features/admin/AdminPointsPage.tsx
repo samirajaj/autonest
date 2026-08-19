@@ -102,7 +102,6 @@ export function AdminPointsPage() {
                     <ActionButton
                       className="icon-button danger"
                       pending={action.isPending(`remove-${x.id}`)}
-                      pendingLabel=""
                       aria-label={`Delete point range ${x.minAmount} to ${x.maxAmount}`}
                       onClick={() => remove(x.id)}
                     >
@@ -159,7 +158,6 @@ export function AdminPointsPage() {
               className="button field full"
               type="submit"
               pending={action.isPending("save-range")}
-              pendingLabel="Saving range…"
             >
               Save range
             </ActionButton>

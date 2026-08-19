@@ -104,7 +104,6 @@ export function CompanyRequestsPage() {
                       <ActionButton
                         className="button danger"
                         pending={action.isPending(`reject-${x.id}`)}
-                        pendingLabel="Rejecting…"
                         onClick={() => reject(x.id)}
                       >
                         Reject
@@ -150,7 +149,6 @@ export function CompanyRequestsPage() {
               className="button field full"
               type="submit"
               pending={action.isPending("approve")}
-              pendingLabel="Approving…"
             >
               Approve request
             </ActionButton>

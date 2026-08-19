@@ -23,7 +23,6 @@ describe("async action protection", () => {
           <ActionButton
             className="button"
             pending={action.isPending("save")}
-            pendingLabel="Saving…"
             onClick={async () => {
               const succeeded = await action.run("save", request);
               if (succeeded) setCompleted(true);
@@ -43,7 +42,8 @@ describe("async action protection", () => {
     fireEvent.click(button);
 
     expect(request).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
 
     await act(async () => finishRequest?.());
 

@@ -73,7 +73,7 @@ export function ProfilePage() {
               required
             />
           </div>
-          <ActionButton className="button" type="submit" pending={action.isPending("username")} pendingLabel="Updating…">
+          <ActionButton className="button" type="submit" pending={action.isPending("username")}>
             Update username
           </ActionButton>
         </form>
@@ -94,7 +94,7 @@ export function ProfilePage() {
               required
             />
           </div>
-          <ActionButton className="button" type="submit" pending={action.isPending("email")} pendingLabel="Updating…">
+          <ActionButton className="button" type="submit" pending={action.isPending("email")}>
             Update email
           </ActionButton>
         </form>
@@ -127,7 +127,7 @@ export function ProfilePage() {
               required
             />
           </div>
-          <ActionButton className="button" type="submit" pending={action.isPending("password")} pendingLabel="Changing…">
+          <ActionButton className="button" type="submit" pending={action.isPending("password")}>
             Change password
           </ActionButton>
         </form>
