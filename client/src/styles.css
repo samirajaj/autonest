@@ -574,13 +574,16 @@ input[type="file"]::file-selector-button {
 .modal .filter-reset {
   grid-column: 1/-1;
 }
+.modal .filter-search {
+  grid-column: 1/-1;
+}
 .modal .search-field {
-  width: 100%;
-  border: 1px solid var(--line);
-  background: var(--input);
-  border-radius: 12px;
   min-height: 46px;
-  padding: 0 13px;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--input);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
@@ -590,8 +593,16 @@ input[type="file"]::file-selector-button {
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
 .modal .search-field input {
+  min-width: 0;
   min-height: 44px;
   padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.modal .search-field input:focus {
+  border: 0;
+  box-shadow: none;
 }
 .car-card {
   position: relative;
