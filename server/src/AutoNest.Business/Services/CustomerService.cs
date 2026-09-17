@@ -83,13 +83,15 @@ public sealed class CustomerService(
             return OperationResult.Fail("Customer not found.");
         }
 
-        var hasTransactions = await db.Transactions.AnyAsync(x => x.Request.CustomerId == customer.Id, ct);
+        var hasRequests = await db.Requests.AnyAsync(x => x.CustomerId == customer.Id, ct);
 
-        if (hasTransactions)
+        if (hasRequests)
         {
-            return OperationResult.Fail("Accounts with transaction history cannot be deleted.");
+            return OperationResult.Fail("Accounts with request history cannot be deleted.");
         }
 
+        var favorites = await db.FavoriteCars.Where(x => x.CustomerId == customer.Id).ToListAsync(ct);
+        db.FavoriteCars.RemoveRange(favorites);
         db.Customers.Remove(customer);
         await db.SaveChangesAsync(ct);
 
@@ -193,9 +195,16 @@ public sealed class CustomerService(
             return OperationResult.Fail("Vehicle is not available.");
         }
 
-        if (request.Type == RequestType.Rent && !DomainRules.IsRentalPeriodValid(request.StartDate, request.EndDate))
+        if (request.Type == RequestType.Rent && !DomainRules.IsRentalPeriodValid(request.StartDate, request.EndDate, DateTime.UtcNow))
         {
             return OperationResult.Fail("A valid rental period is required.");
+        }
+
+        if (!DomainRules.RequestMatchesListing(request.Type, car.IsForSale))
+        {
+            return OperationResult.Fail(car.IsForSale
+                ? "This vehicle is available for sale only."
+                : "This vehicle is available for rent only.");
         }
 
         if (await db.Requests.AnyAsync(x => x.CustomerId == id && x.CarId == request.CarId && (x.State == RequestState.Pending || x.State == RequestState.Approved), ct))
@@ -208,8 +217,8 @@ public sealed class CustomerService(
             CustomerId = id.Value,
             CarId = request.CarId,
             Type = request.Type,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate
+            StartDate = request.Type == RequestType.Rent ? request.StartDate : null,
+            EndDate = request.Type == RequestType.Rent ? request.EndDate : null
         });
         await db.SaveChangesAsync(ct);
 
@@ -271,6 +280,11 @@ public sealed class CustomerService(
         if (transaction is null)
         {
             return OperationResult.Fail("Transaction not found.");
+        }
+
+        if (transaction.Request.State != RequestState.Completed)
+        {
+            return OperationResult.Fail("Only completed transactions can be rated.");
         }
 
         if (transaction.Rating is null)

@@ -13,11 +13,20 @@ public static class DomainRules
             && x.Price >= 0
             && x.Mileage >= 0;
 
-    public static bool IsRentalPeriodValid(DateTime? start, DateTime? end)
-        => start.HasValue && end.HasValue && end.Value.Date > start.Value.Date;
+    public static bool IsRentalPeriodValid(DateTime? start, DateTime? end, DateTime utcNow)
+        => start.HasValue
+            && end.HasValue
+            && start.Value.Date >= utcNow.Date
+            && end.Value.Date > start.Value.Date;
+
+    public static bool RequestMatchesListing(RequestType type, bool isForSale)
+        => (type == RequestType.Sale) == isForSale;
+
+    public static bool IsApprovalValid(DateTime deadline, decimal paidAmount, DateTime utcNow)
+        => paidAmount > 0 && deadline.Date >= utcNow.Date;
 
     public static bool CanCancel(RequestState state)
-        => state is RequestState.Pending or RequestState.Approved;
+        => state == RequestState.Pending;
 
     public static bool CanApprove(RequestState state)
         => state == RequestState.Pending;

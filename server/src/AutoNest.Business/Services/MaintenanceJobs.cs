@@ -9,7 +9,12 @@ public sealed class MaintenanceJobs(AutoNestDbContext db, AutoNest.Business.Cont
     public async Task DeleteOldCarsAsync()
     {
         var cutoff = DateTime.UtcNow.AddDays(-30);
-        var cars = await db.Cars.Where(x => x.DeletedAt < cutoff).ToListAsync();
+        var cars = await db.Cars
+            .Where(x => x.DeletedAt < cutoff && !db.Requests.Any(r => r.CarId == x.Id) && !db.CarRates.Any(r => r.CarId == x.Id))
+            .ToListAsync();
+        var carIds = cars.Select(x => x.Id).ToList();
+        var favorites = await db.FavoriteCars.Where(x => carIds.Contains(x.CarId)).ToListAsync();
+        db.FavoriteCars.RemoveRange(favorites);
         db.Cars.RemoveRange(cars);
         await db.SaveChangesAsync();
     }
@@ -28,9 +33,13 @@ public sealed class MaintenanceJobs(AutoNestDbContext db, AutoNest.Business.Cont
 
         foreach (var request in approved)
         {
-            request.State = RequestState.Rejected;
-            request.Car.IsAvailable = true;
-            request.Car.InRent = false;
+            request.State = RequestState.Completed;
+
+            if (request.Type == RequestType.Rent)
+            {
+                request.Car.IsAvailable = true;
+                request.Car.InRent = false;
+            }
         }
 
         await db.SaveChangesAsync();

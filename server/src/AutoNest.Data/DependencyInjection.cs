@@ -1,5 +1,4 @@
 using AutoNest.Data.Entities;
-using AutoNest.Data.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +16,6 @@ public static class DependencyInjection
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
         }).AddRoles<IdentityRole>().AddEntityFrameworkStores<AutoNestDbContext>().AddDefaultTokenProviders();
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-
         return services;
     }
 }

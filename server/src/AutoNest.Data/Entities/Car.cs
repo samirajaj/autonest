@@ -5,6 +5,10 @@ namespace AutoNest.Data.Entities;
 public sealed class Car
 {
     public int Id { get; set; }
+
+    [Timestamp]
+    public byte[] RowVersion { get; set; } = [];
+
     public int CompanyId { get; set; }
     public Company Company { get; set; } = null!;
 

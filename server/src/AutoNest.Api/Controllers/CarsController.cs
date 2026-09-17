@@ -39,6 +39,6 @@ public sealed class CarsController(ICarService cars) : ControllerBase
     {
         var image = await cars.GetImageAsync(id, ct);
 
-        return image is null ? NotFound() : File(image, "image/jpeg");
+        return image is null ? NotFound() : File(image.Value.Data, image.Value.ContentType);
     }
 }

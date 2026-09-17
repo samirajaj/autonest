@@ -79,14 +79,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         RoleClaimType = System.Security.Claims.ClaimTypes.Role
     });
 builder.Services.AddAuthorization();
+
+var clientBaseUrl = builder.Configuration["ClientBaseUrl"];
+
+if (!Uri.TryCreate(clientBaseUrl, UriKind.Absolute, out var clientUri))
+{
+    throw new InvalidOperationException("ClientBaseUrl must be a valid absolute URL.");
+}
+
 builder.Services.AddCors(x => x.AddPolicy("Client", p => p
-    .AllowAnyOrigin()
+    .WithOrigins(clientUri.GetLeftPart(UriPartial.Authority))
     .AllowAnyHeader()
     .AllowAnyMethod()));
 
 var app = builder.Build();
 
 app.UseExceptionHandler();
+app.UseStatusCodePages();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.XContentTypeOptions = "nosniff";
+    await next();
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -96,6 +111,11 @@ if (app.Environment.IsDevelopment())
 
 if (!app.Environment.IsEnvironment("Testing"))
 {
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseHsts();
+    }
+
     app.UseHttpsRedirection();
 }
 

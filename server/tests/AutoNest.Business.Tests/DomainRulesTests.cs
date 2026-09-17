@@ -20,14 +20,33 @@ public sealed class DomainRulesTests
     {
         var start = new DateTime(2026, 8, 1);
 
-        Assert.True(DomainRules.IsRentalPeriodValid(start, start.AddDays(2)));
-        Assert.False(DomainRules.IsRentalPeriodValid(start, start));
-        Assert.False(DomainRules.IsRentalPeriodValid(null, start));
+        Assert.True(DomainRules.IsRentalPeriodValid(start, start.AddDays(2), start));
+        Assert.False(DomainRules.IsRentalPeriodValid(start, start, start));
+        Assert.False(DomainRules.IsRentalPeriodValid(null, start, start));
+        Assert.False(DomainRules.IsRentalPeriodValid(start.AddDays(-1), start.AddDays(1), start));
+    }
+
+    [Theory]
+    [InlineData(RequestType.Sale, true, true)]
+    [InlineData(RequestType.Rent, false, true)]
+    [InlineData(RequestType.Sale, false, false)]
+    [InlineData(RequestType.Rent, true, false)]
+    public void Request_type_must_match_listing(RequestType type, bool isForSale, bool expected)
+        => Assert.Equal(expected, DomainRules.RequestMatchesListing(type, isForSale));
+
+    [Fact]
+    public void Approval_requires_positive_payment_and_non_past_deadline()
+    {
+        var now = new DateTime(2026, 9, 17, 12, 0, 0, DateTimeKind.Utc);
+
+        Assert.True(DomainRules.IsApprovalValid(now.Date, 1, now));
+        Assert.False(DomainRules.IsApprovalValid(now.AddDays(-1), 1, now));
+        Assert.False(DomainRules.IsApprovalValid(now.AddDays(1), 0, now));
     }
 
     [Theory]
     [InlineData(RequestState.Pending, true)]
-    [InlineData(RequestState.Approved, true)]
+    [InlineData(RequestState.Approved, false)]
     [InlineData(RequestState.Completed, false)]
     [InlineData(RequestState.Rejected, false)]
     public void Cancellation_follows_request_state(RequestState state, bool expected)

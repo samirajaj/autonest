@@ -107,18 +107,21 @@ public sealed class CarService(AutoNestDbContext db, IUserContext current) : ICa
             : car;
     }
 
-    public Task<byte[]?> GetImageAsync(int imageId, CancellationToken ct)
-        => db.CarImages.AsNoTracking()
+    public async Task<(byte[] Data, string ContentType)?> GetImageAsync(int imageId, CancellationToken ct)
+    {
+        var image = await db.CarImages.AsNoTracking()
             .Where(x => x.Id == imageId)
-            .Select(x => x.Image)
+            .Select(x => new { Data = x.Image, x.ContentType })
             .FirstOrDefaultAsync(ct);
 
-    public Task<IReadOnlyList<CompanySummaryDto>> CompaniesAsync(CancellationToken ct)
-        => db.Companies.AsNoTracking()
+        return image is null ? null : (image.Data, image.ContentType);
+    }
+
+    public async Task<IReadOnlyList<CompanySummaryDto>> CompaniesAsync(CancellationToken ct)
+        => await db.Companies.AsNoTracking()
             .OrderBy(x => x.Name)
             .Select(x => new CompanySummaryDto(x.Id, x.Name, x.Email, x.Address.City.Name, x.Address.AreaName))
-            .ToListAsync(ct)
-            .ContinueWith<IReadOnlyList<CompanySummaryDto>>(x => x.Result, ct);
+            .ToListAsync(ct);
 
     public async Task<PagedResult<CarSummaryDto>> CompanyCarsAsync(int companyId, int page, int pageSize, bool includeDeleted, CancellationToken ct)
     {
@@ -137,6 +140,15 @@ public sealed class CarService(AutoNestDbContext db, IUserContext current) : ICa
             p,
             size,
             count);
+    }
+
+    public async Task<PagedResult<CarSummaryDto>?> CurrentCompanyCarsAsync(int page, int pageSize, bool includeDeleted, CancellationToken ct)
+    {
+        var companyId = await CurrentCompanyId(ct);
+
+        return companyId is null
+            ? null
+            : await CompanyCarsAsync(companyId.Value, page, pageSize, includeDeleted, ct);
     }
 
     public async Task<int?> CreateAsync(CarUpsertRequest request, IReadOnlyList<(byte[] Data, string ContentType)> images, CancellationToken ct)
@@ -177,6 +189,11 @@ public sealed class CarService(AutoNestDbContext db, IUserContext current) : ICa
             return OperationResult.Fail("Vehicle details are invalid.");
         }
 
+        if (car.SoldAt is not null || car.InRent)
+        {
+            return OperationResult.Fail("A sold or actively rented vehicle cannot be changed.");
+        }
+
         Apply(car, request);
 
         if (images.Count > 0)
@@ -204,6 +221,11 @@ public sealed class CarService(AutoNestDbContext db, IUserContext current) : ICa
             return OperationResult.Fail("Vehicle not found.");
         }
 
+        if (car.SoldAt is not null || car.InRent)
+        {
+            return OperationResult.Fail("A sold or actively rented vehicle cannot be deleted.");
+        }
+
         car.DeletedAt = DateTime.UtcNow;
         car.IsAvailable = false;
         await db.SaveChangesAsync(ct);
@@ -218,6 +240,11 @@ public sealed class CarService(AutoNestDbContext db, IUserContext current) : ICa
         if (car is null)
         {
             return OperationResult.Fail("Vehicle not found.");
+        }
+
+        if (car.SoldAt is not null || car.InRent)
+        {
+            return OperationResult.Fail("A sold or actively rented vehicle cannot be restored.");
         }
 
         car.DeletedAt = null;

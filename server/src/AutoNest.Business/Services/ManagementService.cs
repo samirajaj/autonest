@@ -95,6 +95,26 @@ public sealed class ManagementService(
             return OperationResult.Fail("Only pending requests can be approved.");
         }
 
+        if (!request.Car.IsAvailable || request.Car.DeletedAt is not null)
+        {
+            return OperationResult.Fail("Vehicle is no longer available.");
+        }
+
+        if (!DomainRules.RequestMatchesListing(request.Type, request.Car.IsForSale))
+        {
+            return OperationResult.Fail("The request type does not match the vehicle listing.");
+        }
+
+        if (!DomainRules.IsApprovalValid(input.Deadline, input.PaidAmount, DateTime.UtcNow))
+        {
+            return OperationResult.Fail("A current or future completion deadline and a positive paid amount are required.");
+        }
+
+        if (request.Type == RequestType.Rent && request.EndDate > input.Deadline.Date)
+        {
+            return OperationResult.Fail("The completion deadline cannot be before the rental end date.");
+        }
+
         request.State = RequestState.Approved;
         request.Deadline = input.Deadline;
         request.Car.IsAvailable = false;
@@ -111,8 +131,26 @@ public sealed class ManagementService(
             PaidAmount = input.PaidAmount,
             State = request.Type == RequestType.Sale ? TransactionStatus.Sold : TransactionStatus.Rented
         });
+
+        var competingRequests = await db.Requests
+            .Where(x => x.CarId == request.CarId && x.Id != request.Id && x.State == RequestState.Pending)
+            .ToListAsync(ct);
+
+        foreach (var competingRequest in competingRequests)
+        {
+            competingRequest.State = RequestState.Rejected;
+        }
+
         await AddPoints(request.CustomerId, input.PaidAmount, ct);
-        await db.SaveChangesAsync(ct);
+
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return OperationResult.Fail("Vehicle was approved in another request. Refresh and try again.");
+        }
 
         return OperationResult.Success();
     }
@@ -193,7 +231,12 @@ public sealed class ManagementService(
             return OperationResult.Fail("A password is required.");
         }
 
-        var user = new ApplicationUser { Email = x.Email, UserName = x.UserName, EmailConfirmed = true };
+        if (!IsCustomerInputValid(x) || !await db.Cities.AnyAsync(city => city.Id == x.CityId, ct))
+        {
+            return OperationResult.Fail("Customer details are invalid.");
+        }
+
+        var user = new ApplicationUser { Email = x.Email.Trim(), UserName = x.UserName.Trim(), EmailConfirmed = true };
         var made = await users.CreateAsync(user, x.Password);
 
         if (!made.Succeeded)
@@ -201,15 +244,21 @@ public sealed class ManagementService(
             return Identity(made);
         }
 
-        await users.AddToRoleAsync(user, "Customer");
+        var roleResult = await users.AddToRoleAsync(user, "Customer");
+
+        if (!roleResult.Succeeded)
+        {
+            await users.DeleteAsync(user);
+            return Identity(roleResult);
+        }
 
         db.Customers.Add(new Customer
         {
             UserId = user.Id,
-            FirstName = x.FirstName,
-            LastName = x.LastName,
+            FirstName = x.FirstName.Trim(),
+            LastName = x.LastName.Trim(),
             BirthDate = x.BirthDate,
-            Address = new Address { CityId = x.CityId, AreaName = x.AreaName }
+            Address = new Address { CityId = x.CityId, AreaName = x.AreaName.Trim() }
         });
         await db.SaveChangesAsync(ct);
 
@@ -223,7 +272,12 @@ public sealed class ManagementService(
             return OperationResult.Fail("A password is required.");
         }
 
-        var user = new ApplicationUser { Email = x.Email, UserName = x.UserName, EmailConfirmed = true };
+        if (!IsCompanyInputValid(x) || !await db.Cities.AnyAsync(city => city.Id == x.CityId, ct))
+        {
+            return OperationResult.Fail("Company details are invalid.");
+        }
+
+        var user = new ApplicationUser { Email = x.Email.Trim(), UserName = x.UserName.Trim(), EmailConfirmed = true };
         var made = await users.CreateAsync(user, x.Password);
 
         if (!made.Succeeded)
@@ -231,19 +285,25 @@ public sealed class ManagementService(
             return Identity(made);
         }
 
-        await users.AddToRoleAsync(user, "Company");
+        var roleResult = await users.AddToRoleAsync(user, "Company");
+
+        if (!roleResult.Succeeded)
+        {
+            await users.DeleteAsync(user);
+            return Identity(roleResult);
+        }
 
         var company = new Company
         {
             UserId = user.Id,
-            Name = x.Name,
-            Email = x.Email,
-            Address = new Address { CityId = x.CityId, AreaName = x.AreaName }
+            Name = x.Name.Trim(),
+            Email = x.Email.Trim(),
+            Address = new Address { CityId = x.CityId, AreaName = x.AreaName.Trim() }
         };
 
         foreach (var contact in x.Contacts)
         {
-            company.Contacts.Add(new Contact { Type = contact.Type, Value = contact.Value });
+            company.Contacts.Add(new Contact { Type = contact.Type.Trim(), Value = contact.Value.Trim() });
         }
 
         db.Companies.Add(company);
@@ -254,6 +314,11 @@ public sealed class ManagementService(
 
     public async Task<OperationResult> UpdateCustomerAsync(int id, AdminCustomerUpsertRequest x, CancellationToken ct)
     {
+        if (!IsCustomerInputValid(x) || !await db.Cities.AnyAsync(city => city.Id == x.CityId, ct))
+        {
+            return OperationResult.Fail("Customer details are invalid.");
+        }
+
         var customer = await db.Customers.Include(c => c.User).Include(c => c.Address).FirstOrDefaultAsync(c => c.Id == id, ct);
 
         if (customer is null)
@@ -261,15 +326,18 @@ public sealed class ManagementService(
             return OperationResult.Fail("Customer not found.");
         }
 
-        customer.FirstName = x.FirstName;
-        customer.LastName = x.LastName;
+        var identityUpdate = await UpdateIdentityAsync(customer.User, x.Email, x.UserName);
+
+        if (!identityUpdate.Succeeded)
+        {
+            return identityUpdate;
+        }
+
+        customer.FirstName = x.FirstName.Trim();
+        customer.LastName = x.LastName.Trim();
         customer.BirthDate = x.BirthDate;
         customer.Address.CityId = x.CityId;
-        customer.Address.AreaName = x.AreaName;
-        customer.User.Email = x.Email;
-        customer.User.UserName = x.UserName;
-        customer.User.NormalizedEmail = users.NormalizeEmail(x.Email);
-        customer.User.NormalizedUserName = users.NormalizeName(x.UserName);
+        customer.Address.AreaName = x.AreaName.Trim();
         customer.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
 
@@ -283,6 +351,11 @@ public sealed class ManagementService(
 
     public async Task<OperationResult> UpdateCompanyAsync(int id, AdminCompanyUpsertRequest x, CancellationToken ct)
     {
+        if (!IsCompanyInputValid(x) || !await db.Cities.AnyAsync(city => city.Id == x.CityId, ct))
+        {
+            return OperationResult.Fail("Company details are invalid.");
+        }
+
         var company = await db.Companies
             .Include(c => c.User)
             .Include(c => c.Address)
@@ -294,21 +367,24 @@ public sealed class ManagementService(
             return OperationResult.Fail("Company not found.");
         }
 
-        company.Name = x.Name;
-        company.Email = x.Email;
+        var identityUpdate = await UpdateIdentityAsync(company.User, x.Email, x.UserName);
+
+        if (!identityUpdate.Succeeded)
+        {
+            return identityUpdate;
+        }
+
+        company.Name = x.Name.Trim();
+        company.Email = x.Email.Trim();
         company.Address.CityId = x.CityId;
-        company.Address.AreaName = x.AreaName;
-        company.User.Email = x.Email;
-        company.User.UserName = x.UserName;
-        company.User.NormalizedEmail = users.NormalizeEmail(x.Email);
-        company.User.NormalizedUserName = users.NormalizeName(x.UserName);
+        company.Address.AreaName = x.AreaName.Trim();
         company.UpdatedAt = DateTime.UtcNow;
         db.Contacts.RemoveRange(company.Contacts);
         company.Contacts.Clear();
 
         foreach (var contact in x.Contacts)
         {
-            company.Contacts.Add(new Contact { Type = contact.Type, Value = contact.Value });
+            company.Contacts.Add(new Contact { Type = contact.Type.Trim(), Value = contact.Value.Trim() });
         }
 
         await db.SaveChangesAsync(ct);
@@ -482,6 +558,41 @@ public sealed class ManagementService(
 
     private Task<int?> CurrentCompanyId(CancellationToken ct)
         => db.Companies.Where(x => x.UserId == current.UserId).Select(x => (int?)x.Id).FirstOrDefaultAsync(ct);
+
+    private static bool IsCustomerInputValid(AdminCustomerUpsertRequest x)
+        => !string.IsNullOrWhiteSpace(x.Email)
+            && !string.IsNullOrWhiteSpace(x.UserName)
+            && !string.IsNullOrWhiteSpace(x.FirstName) && x.FirstName.Length <= 80
+            && !string.IsNullOrWhiteSpace(x.LastName) && x.LastName.Length <= 80
+            && !string.IsNullOrWhiteSpace(x.AreaName) && x.AreaName.Length <= 180;
+
+    private static bool IsCompanyInputValid(AdminCompanyUpsertRequest x)
+        => !string.IsNullOrWhiteSpace(x.Email) && x.Email.Length <= 256
+            && !string.IsNullOrWhiteSpace(x.UserName)
+            && !string.IsNullOrWhiteSpace(x.Name) && x.Name.Length <= 180
+            && !string.IsNullOrWhiteSpace(x.AreaName) && x.AreaName.Length <= 180
+            && x.Contacts is not null
+            && x.Contacts.All(contact => !string.IsNullOrWhiteSpace(contact.Type) && contact.Type.Length <= 40
+                && !string.IsNullOrWhiteSpace(contact.Value) && contact.Value.Length <= 300);
+
+    private async Task<OperationResult> UpdateIdentityAsync(ApplicationUser user, string email, string userName)
+    {
+        email = email.Trim();
+        userName = userName.Trim();
+        var originalEmail = user.Email;
+        var originalUserName = user.UserName;
+        user.Email = email;
+        user.UserName = userName;
+        var result = await users.UpdateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            user.Email = originalEmail;
+            user.UserName = originalUserName;
+        }
+
+        return Identity(result);
+    }
 
     private static OperationResult Identity(IdentityResult x)
         => x.Succeeded

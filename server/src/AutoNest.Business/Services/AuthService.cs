@@ -33,7 +33,13 @@ public sealed class AuthService(
             return OperationResult.Fail(string.Join(" ", created.Errors.Select(x => x.Description)));
         }
 
-        await users.AddToRoleAsync(user, "Customer");
+        var roleResult = await users.AddToRoleAsync(user, "Customer");
+
+        if (!roleResult.Succeeded)
+        {
+            await users.DeleteAsync(user);
+            return OperationResult.Fail(string.Join(" ", roleResult.Errors.Select(x => x.Description)));
+        }
 
         var address = new Address
         {
@@ -82,7 +88,11 @@ public sealed class AuthService(
             return OperationResult.Fail("Account not found.");
         }
 
-        var decoded = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+        if (!TryDecodeToken(token, out var decoded))
+        {
+            return OperationResult.Fail("The confirmation link is invalid or expired.");
+        }
+
         var result = await users.ConfirmEmailAsync(user, decoded);
 
         return result.Succeeded
@@ -112,11 +122,29 @@ public sealed class AuthService(
             return OperationResult.Fail("Invalid reset request.");
         }
 
-        var decoded = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Token));
+        if (!TryDecodeToken(request.Token, out var decoded))
+        {
+            return OperationResult.Fail("Invalid reset request.");
+        }
+
         var result = await users.ResetPasswordAsync(user, decoded, request.NewPassword);
 
         return result.Succeeded
             ? OperationResult.Success()
             : OperationResult.Fail(string.Join(" ", result.Errors.Select(x => x.Description)));
+    }
+
+    private static bool TryDecodeToken(string token, out string decoded)
+    {
+        try
+        {
+            decoded = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+            return true;
+        }
+        catch (FormatException)
+        {
+            decoded = string.Empty;
+            return false;
+        }
     }
 }
