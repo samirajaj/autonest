@@ -39,6 +39,10 @@ public sealed class AutoNestDbContext(DbContextOptions<AutoNestDbContext> option
         builder.Entity<Company>().HasIndex(x => x.UserId).IsUnique();
         builder.Entity<Plan>().HasIndex(x => x.Name).IsUnique();
         builder.Entity<FavoriteCar>().HasIndex(x => new { x.CustomerId, x.CarId }).IsUnique();
+        builder.Entity<CarRequest>()
+            .HasIndex(x => new { x.CustomerId, x.CarId })
+            .IsUnique()
+            .HasFilter("[State] IN (1, 2)");
         builder.Entity<Transaction>().HasIndex(x => x.RequestId).IsUnique();
         builder.Entity<CarRate>().HasIndex(x => x.TransactionId).IsUnique();
 

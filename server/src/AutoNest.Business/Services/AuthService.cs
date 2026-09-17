@@ -1,4 +1,5 @@
 using System.Text;
+using System.ComponentModel.DataAnnotations;
 using AutoNest.Business.Contracts;
 using AutoNest.Data;
 using AutoNest.Data.Entities;
@@ -16,11 +17,19 @@ public sealed class AuthService(
 {
     public async Task<OperationResult> RegisterCustomerAsync(RegisterCustomerRequest request, string confirmationBaseUrl, CancellationToken ct)
     {
+        if (!IsRegistrationValid(request))
+        {
+            return OperationResult.Fail("Registration details are invalid.");
+        }
+
         if (!await db.Cities.AnyAsync(x => x.Id == request.CityId, ct))
         {
             return OperationResult.Fail("The selected city does not exist.");
         }
 
+        await using var transaction = db.Database.IsRelational()
+            ? await db.Database.BeginTransactionAsync(ct)
+            : null;
         var user = new ApplicationUser
         {
             Email = request.Email.Trim(),
@@ -58,6 +67,10 @@ public sealed class AuthService(
 
         var token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(await users.GenerateEmailConfirmationTokenAsync(user)));
         await email.SendAsync(user.Email!, "Confirm your AutoNest account", $"<a href=\"{confirmationBaseUrl}?userId={Uri.EscapeDataString(user.Id)}&token={Uri.EscapeDataString(token)}\">Confirm email</a>", ct);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(ct);
+        }
 
         return OperationResult.Success();
     }
@@ -147,4 +160,14 @@ public sealed class AuthService(
             return false;
         }
     }
+
+    private static bool IsRegistrationValid(RegisterCustomerRequest request)
+        => !string.IsNullOrWhiteSpace(request.Email)
+            && request.Email.Length <= 256
+            && new EmailAddressAttribute().IsValid(request.Email)
+            && !string.IsNullOrWhiteSpace(request.UserName)
+            && !string.IsNullOrWhiteSpace(request.Password)
+            && !string.IsNullOrWhiteSpace(request.FirstName) && request.FirstName.Length <= 80
+            && !string.IsNullOrWhiteSpace(request.LastName) && request.LastName.Length <= 80
+            && !string.IsNullOrWhiteSpace(request.AreaName) && request.AreaName.Length <= 180;
 }

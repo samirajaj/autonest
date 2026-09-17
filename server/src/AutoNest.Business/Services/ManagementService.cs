@@ -1,6 +1,7 @@
 using AutoNest.Business.Contracts;
 using AutoNest.Data;
 using AutoNest.Data.Entities;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -236,6 +237,9 @@ public sealed class ManagementService(
             return OperationResult.Fail("Customer details are invalid.");
         }
 
+        await using var transaction = db.Database.IsRelational()
+            ? await db.Database.BeginTransactionAsync(ct)
+            : null;
         var user = new ApplicationUser { Email = x.Email.Trim(), UserName = x.UserName.Trim(), EmailConfirmed = true };
         var made = await users.CreateAsync(user, x.Password);
 
@@ -262,6 +266,11 @@ public sealed class ManagementService(
         });
         await db.SaveChangesAsync(ct);
 
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(ct);
+        }
+
         return OperationResult.Success();
     }
 
@@ -277,6 +286,9 @@ public sealed class ManagementService(
             return OperationResult.Fail("Company details are invalid.");
         }
 
+        await using var transaction = db.Database.IsRelational()
+            ? await db.Database.BeginTransactionAsync(ct)
+            : null;
         var user = new ApplicationUser { Email = x.Email.Trim(), UserName = x.UserName.Trim(), EmailConfirmed = true };
         var made = await users.CreateAsync(user, x.Password);
 
@@ -309,6 +321,11 @@ public sealed class ManagementService(
         db.Companies.Add(company);
         await db.SaveChangesAsync(ct);
 
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(ct);
+        }
+
         return OperationResult.Success();
     }
 
@@ -326,6 +343,9 @@ public sealed class ManagementService(
             return OperationResult.Fail("Customer not found.");
         }
 
+        await using var transaction = db.Database.IsRelational()
+            ? await db.Database.BeginTransactionAsync(ct)
+            : null;
         var identityUpdate = await UpdateIdentityAsync(customer.User, x.Email, x.UserName);
 
         if (!identityUpdate.Succeeded)
@@ -343,7 +363,17 @@ public sealed class ManagementService(
 
         if (!string.IsNullOrWhiteSpace(x.Password))
         {
-            return await ChangePasswordAsync(customer.UserId, x.Password);
+            var passwordResult = await ChangePasswordAsync(customer.UserId, x.Password);
+
+            if (!passwordResult.Succeeded)
+            {
+                return passwordResult;
+            }
+        }
+
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(ct);
         }
 
         return OperationResult.Success();
@@ -367,6 +397,9 @@ public sealed class ManagementService(
             return OperationResult.Fail("Company not found.");
         }
 
+        await using var transaction = db.Database.IsRelational()
+            ? await db.Database.BeginTransactionAsync(ct)
+            : null;
         var identityUpdate = await UpdateIdentityAsync(company.User, x.Email, x.UserName);
 
         if (!identityUpdate.Succeeded)
@@ -391,7 +424,17 @@ public sealed class ManagementService(
 
         if (!string.IsNullOrWhiteSpace(x.Password))
         {
-            return await ChangePasswordAsync(company.UserId, x.Password);
+            var passwordResult = await ChangePasswordAsync(company.UserId, x.Password);
+
+            if (!passwordResult.Succeeded)
+            {
+                return passwordResult;
+            }
+        }
+
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(ct);
         }
 
         return OperationResult.Success();
@@ -481,8 +524,7 @@ public sealed class ManagementService(
             EndDate = DateTime.UtcNow.AddDays(plan.Duration)
         };
         db.SubscriptionPlans.Add(subscription);
-        await db.SaveChangesAsync(ct);
-        company.SubscriptionPlanId = subscription.Id;
+        company.SubscriptionPlan = subscription;
         await db.SaveChangesAsync(ct);
 
         return OperationResult.Success();
@@ -561,6 +603,8 @@ public sealed class ManagementService(
 
     private static bool IsCustomerInputValid(AdminCustomerUpsertRequest x)
         => !string.IsNullOrWhiteSpace(x.Email)
+            && x.Email.Length <= 256
+            && new EmailAddressAttribute().IsValid(x.Email)
             && !string.IsNullOrWhiteSpace(x.UserName)
             && !string.IsNullOrWhiteSpace(x.FirstName) && x.FirstName.Length <= 80
             && !string.IsNullOrWhiteSpace(x.LastName) && x.LastName.Length <= 80
@@ -568,6 +612,7 @@ public sealed class ManagementService(
 
     private static bool IsCompanyInputValid(AdminCompanyUpsertRequest x)
         => !string.IsNullOrWhiteSpace(x.Email) && x.Email.Length <= 256
+            && new EmailAddressAttribute().IsValid(x.Email)
             && !string.IsNullOrWhiteSpace(x.UserName)
             && !string.IsNullOrWhiteSpace(x.Name) && x.Name.Length <= 180
             && !string.IsNullOrWhiteSpace(x.AreaName) && x.AreaName.Length <= 180

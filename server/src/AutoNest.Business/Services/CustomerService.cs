@@ -90,12 +90,27 @@ public sealed class CustomerService(
             return OperationResult.Fail("Accounts with request history cannot be deleted.");
         }
 
+        await using var transaction = db.Database.IsRelational()
+            ? await db.Database.BeginTransactionAsync(ct)
+            : null;
         var favorites = await db.FavoriteCars.Where(x => x.CustomerId == customer.Id).ToListAsync(ct);
         db.FavoriteCars.RemoveRange(favorites);
         db.Customers.Remove(customer);
         await db.SaveChangesAsync(ct);
 
-        return IdentityResult(await users.DeleteAsync(user));
+        var deleted = await users.DeleteAsync(user);
+
+        if (!deleted.Succeeded)
+        {
+            return IdentityResult(deleted);
+        }
+
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(ct);
+        }
+
+        return OperationResult.Success();
     }
 
     public async Task<IReadOnlyList<CarSummaryDto>> FavoritesAsync(CancellationToken ct)

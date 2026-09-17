@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using AutoNest.Api.Infrastructure;
+using AutoNest.Api.Middleware;
 using AutoNest.Business;
 using AutoNest.Business.Contracts;
 using AutoNest.Business.Services;
@@ -13,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
